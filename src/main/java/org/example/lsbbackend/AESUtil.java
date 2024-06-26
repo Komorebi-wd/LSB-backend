@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.Random;
 
 public class AESUtil {
     /** 加密模式之 ECB，算法/模式/补码方式 */
@@ -16,6 +17,8 @@ public class AESUtil {
 
     /** 加密模式之 CFB，算法/模式/补码方式 */
     public static final String AES_CFB = "AES/CFB/PKCS5Padding";
+    private static final int MIN_VALUE = 18;
+
 
     /** AES 中的 IV 必须是 16 字节（128位）长 */
     public static final Integer IV_LENGTH = 16;
@@ -23,6 +26,7 @@ public class AESUtil {
     public static boolean isEmpty(Object str) {
         return null == str || "".equals(str);
     }
+
     public static byte[] getBytes(String str){
         if (isEmpty(str)) {
             return null;
@@ -34,25 +38,20 @@ public class AESUtil {
         }
     }
 
-    public static int[] getRandom(String seedString,int max,int nums) throws Exception {
-        int min = 18;
-        int[] locations=new int[nums];
-        try {
-            for(int i=0;i<nums;i++){
-                // 计算字符串的哈希值
-                MessageDigest md = MessageDigest.getInstance("SHA-256");
-                byte[] seed = md.digest(seedString.getBytes());
-                // 使用哈希值作为种子创建安全的随机数生成器
-                SecureRandom secureRandom = new SecureRandom(seed);
-                // 生成指定范围的随机整数
-                int randomNumber = secureRandom.nextInt(max - min + 1) + min;
-                locations[i]=randomNumber;
-            }
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
+    public static int[] getRandom(String seedString, int max, int nums) throws Exception {
+        int[] locations = new int[nums];
+        long seed = seedString.hashCode(); // 使用字符串的hashCode作为种子
+        Random random = new Random(seed);
+        for (int i = 0; i < nums; i++) {
+            int randomNumber = random.nextInt(max - MIN_VALUE + 1) + MIN_VALUE;
+            locations[i] = randomNumber;
         }
         return locations;
     }
+
+
+
+
 
     /***
      * <h2>获取一个 AES 密钥规范</h2>

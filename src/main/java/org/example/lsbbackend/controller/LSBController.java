@@ -35,7 +35,9 @@ public class LSBController {
 
     @PostMapping("/embed")
     public ResponseEntity<?> embedMessage(@RequestParam("image") MultipartFile imageFile,
-                                          @RequestParam("message") String message) {
+                                          @RequestParam("message") String message,
+                                          @RequestParam("key") String key
+                                          ) {
         try {
 
 //            BufferedImage image = ImageIO.read(imageFile.getInputStream());
@@ -43,9 +45,8 @@ public class LSBController {
 //            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 //            ImageIO.write(modifiedImage, "bmp", outputStream);
 //            byte[] imageBytes = outputStream.toByteArray();
-            byte[] imageBytes = BMPEncoder.hideMessageInBmp(imageFile.getInputStream(),message);
+            byte[] imageBytes = BMPEncoder.hideMessageInBmp(imageFile.getInputStream(),message,key);
             String encodedImage = Base64.getEncoder().encodeToString(imageBytes);
-
             return ResponseEntity.ok(encodedImage);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error embedding message.");
@@ -53,11 +54,13 @@ public class LSBController {
     }
 
     @PostMapping("/extract")
-    public ResponseEntity<?> extractMessage(@RequestParam("image") MultipartFile imageFile) {
+    public ResponseEntity<?> extractMessage(@RequestParam("image") MultipartFile imageFile, @RequestParam("key") String key) {
         try {
-            String message = BMPDecoder.extractMessageFromBmp(imageFile.getInputStream());
+            System.out.println(key);
+            String message = BMPDecoder.extractMessageFromBmp(imageFile.getInputStream(),key);
             return ResponseEntity.ok(message);
         } catch (Exception e) {
+            System.out.println(e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error extracting message.");
         }
     }

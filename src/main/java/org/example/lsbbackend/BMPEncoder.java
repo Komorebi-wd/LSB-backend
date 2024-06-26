@@ -10,10 +10,19 @@ import java.nio.charset.StandardCharsets;
 
 public class BMPEncoder {
     public static void main(String[] args) {
+        try {
+            int[] locations = AESUtil.getRandom("mcx",100,10);
+            int[] locations1 = AESUtil.getRandom("mcx",100,10);
+            for (int i=0;i<locations.length;i++){
+                System.out.println(locations[i]+" "+locations1[i]);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
     }
 
-    public static byte[] hideMessageInBmp(InputStream inputStream, String message) throws Exception{
+    public static byte[] hideMessageInBmp(InputStream inputStream, String message, String key) throws Exception{
         try {
 
             // 读取BMP文件
@@ -29,7 +38,7 @@ public class BMPEncoder {
             // 将消息转换为二进制字符串
             StringBuilder binaryMessage = new StringBuilder();
             System.out.println(message.getBytes(StandardCharsets.UTF_8).length);
-            byte[] encryptedData= AESUtil.encrypt(message,"mcx1234567890123", "1234567890123456", AESUtil.AES_CBC);
+            byte[] encryptedData= AESUtil.encrypt(message,key, key, AESUtil.AES_CBC);
             System.out.println(encryptedData.length);
             for (byte i:encryptedData){
                 System.out.print(i+" ");
@@ -53,9 +62,12 @@ public class BMPEncoder {
             binary = String.format("%16s", binary).replace(' ', '0');
             binaryMessage.insert(0,binary);
             System.out.println("message"+binaryMessage.toString());
-            int[] locations = AESUtil.getRandom("mcx1234567890123",width*height,binaryMessage.length()-16);
+            int[] locations = AESUtil.getRandom(key,width*height,binaryMessage.length()-16);
+
             // 检查消息是否可以嵌入到图像中
-            System.out.println("location nums:"+locations.length);
+            for (int i=0;i<locations.length;i++){
+                System.out.println(locations[i]+" ");
+            }
             int maxCapacity = pixelData.length * 8 / 3; // 每个像素可隐藏一个字符，每个像素占用3字节，一个字节8位
             if (binaryMessage.length() > maxCapacity) {
                 throw new IllegalArgumentException("Message too long to embed in the image.");

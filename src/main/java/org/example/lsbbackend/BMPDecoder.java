@@ -14,7 +14,7 @@ public class BMPDecoder {
 //        }
 //        System.out.println("隐藏的信息是: " + extractedMessage);
     }
-    public static String extractMessageFromBmp(InputStream fis) throws Exception{
+    public static String extractMessageFromBmp(InputStream fis, String key) throws Exception{
         byte[] header = new byte[54];
         byte[] pixelData;
 
@@ -62,7 +62,10 @@ public class BMPDecoder {
             padding++;
         }
 
-        int[] locations = AESUtil.getRandom("mcx1234567890123",width*height,size+padding);
+        int[] locations = AESUtil.getRandom(key,width*height,size+padding);
+        for (int i=0;i<locations.length;i++){
+            System.out.println(locations[i]+" ");
+        }
         for (int byteIndex = 0; byteIndex < size+padding; byteIndex += 3) {
             int x1 = locations[byteIndex];
             int y1 = locations[byteIndex+1];
@@ -97,7 +100,10 @@ public class BMPDecoder {
             }
 
         }
-        return AESUtil.decrypt(result,"mcx1234567890123","1234567890123456", AESUtil.AES_CBC);
+        for(int i=0;i<result.length;i++){
+            System.out.print(result[i]+" ");
+        }
+        return AESUtil.decrypt(result,key,key, AESUtil.AES_CBC);
     }
 
     // 辅助方法：将字节数组中指定位置的4个字节转换为int
