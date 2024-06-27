@@ -9,8 +9,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Base64;
 
 import javax.imageio.ImageIO;
@@ -26,9 +29,9 @@ public class LSBController {
             if (image == null) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid image file.");
             }
-            int maxEmbeddableLength = calculateMaxEmbeddableLength(image);
+            int maxEmbeddableLength = calculateMaxEmbeddableLength(file);
             return ResponseEntity.ok(maxEmbeddableLength);
-        } catch (IOException e) {
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error processing image.");
         }
     }
@@ -65,11 +68,25 @@ public class LSBController {
         }
     }
 
-    private int calculateMaxEmbeddableLength(BufferedImage image) {
-        int width = image.getWidth();
-        int height = image.getHeight();
-        int maxLength = (width * height * 3-18) / 16-1; // 3 bytes per pixel, 1 bit per byte for LSB
+    private int calculateMaxEmbeddableLength(MultipartFile image) throws Exception {
+        InputStream inputStream=image.getInputStream();
+        byte[] header = new byte[54];
+        inputStream.read(header);
+        int width = ByteBuffer.wrap(header, 18, 4).order(ByteOrder.LITTLE_ENDIAN).getInt();
+        int height = ByteBuffer.wrap(header, 22, 4).order(ByteOrder.LITTLE_ENDIAN).getInt();
+        int maxLength = 0;
+        if (header[28] == 24){
+            maxLength = (int)Math.floor((width * height*3 -16) / 256)*16;
+        }
+        else if (header[28] == 8){
+            maxLength = (int)Math.floor((width * height -16) / 256)*16;
+        }
+        System.out.println(width+"  "+height+"  "+maxLength);
         return maxLength;
+//        int width = image.getWidth();
+//        int height = image.getHeight();
+//        int maxLength = (width * height * 3-18) / 16-1; // 3 bytes per pixel, 1 bit per byte for LSB
+//        return maxLength;
     }
 
     private BufferedImage embedMessageIntoImage(BufferedImage image, String message) {

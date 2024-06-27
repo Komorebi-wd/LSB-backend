@@ -64,8 +64,9 @@ public class BMPDecoder {
 
         int[] locations = AESUtil.getRandom(key,width*height,size+padding);
         for (int i=0;i<locations.length;i++){
-            System.out.println(locations[i]+" ");
+            System.out.print(locations[i]+" ");
         }
+        System.out.println();
         for (int byteIndex = 0; byteIndex < size+padding; byteIndex += 3) {
             int x1 = locations[byteIndex];
             int y1 = locations[byteIndex+1];

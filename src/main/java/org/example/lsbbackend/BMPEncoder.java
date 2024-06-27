@@ -63,11 +63,11 @@ public class BMPEncoder {
             binaryMessage.insert(0,binary);
             System.out.println("message"+binaryMessage.toString());
             int[] locations = AESUtil.getRandom(key,width*height,binaryMessage.length()-16);
-
             // 检查消息是否可以嵌入到图像中
             for (int i=0;i<locations.length;i++){
-                System.out.println(locations[i]+" ");
+                System.out.print(locations[i]+" ");
             }
+            System.out.println();
             int maxCapacity = pixelData.length * 8 / 3; // 每个像素可隐藏一个字符，每个像素占用3字节，一个字节8位
             if (binaryMessage.length() > maxCapacity) {
                 throw new IllegalArgumentException("Message too long to embed in the image.");
