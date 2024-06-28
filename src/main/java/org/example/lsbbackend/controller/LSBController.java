@@ -2,6 +2,7 @@ package org.example.lsbbackend.controller;
 
 import org.example.lsbbackend.BMPDecoder;
 import org.example.lsbbackend.BMPEncoder;
+import org.example.lsbbackend.GaussianNoise;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -152,5 +153,28 @@ public class LSBController {
         byte[] messageBytes = new byte[buffer.limit()];
         buffer.get(messageBytes);
         return new String(messageBytes).trim();
+    }
+
+    @PostMapping("/noise")
+    public ResponseEntity<?> addNoise(@RequestParam("image") MultipartFile file) {
+        try {
+            BufferedImage image = ImageIO.read(file.getInputStream());
+            if (image == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid image file.");
+            }
+
+            GaussianNoise gauss = new GaussianNoise();
+
+            BufferedImage modifiedImage = gauss.addNoiseImage(image);
+
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            ImageIO.write(modifiedImage, "bmp", outputStream);
+            byte[] imageBytes = outputStream.toByteArray();
+            String encodedImage = Base64.getEncoder().encodeToString(imageBytes);
+
+            return ResponseEntity.ok(encodedImage);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error processing image.");
+        }
     }
 }
