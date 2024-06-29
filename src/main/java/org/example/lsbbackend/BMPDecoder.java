@@ -1,6 +1,7 @@
 package org.example.lsbbackend;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 
 public class BMPDecoder {
@@ -14,6 +15,91 @@ public class BMPDecoder {
 //        }
 //        System.out.println("隐藏的信息是: " + extractedMessage);
     }
+    public static String extractMessageFromBmpWithoutKey(InputStream fis) throws Exception{
+        byte[] header = new byte[54];
+        byte[] pixelData;
+        // 读取BMP文件头部
+        fis.read(header);
+
+        // 读取图像宽度和高度
+        int width = byteArrayToInt(header, 18);
+        int height = byteArrayToInt(header, 22);
+
+        // 读取像素数据
+        if (header[28] == 8) {
+            // 256色灰度图，每个像素占用1字节
+            pixelData = fis.readAllBytes();
+        } else if (header[28] == 24) {
+            // 24位真彩色图，每个像素占用3字节 (BGR顺序)
+            pixelData = fis.readAllBytes();
+        } else {
+            throw new IllegalArgumentException("Unsupported BMP format. Must be 8-bit or 24-bit.");
+        }
+        int size = 0;
+        StringBuilder binaryMessage = new StringBuilder();
+
+        for (int byteIndex = 0; byteIndex < 18; byteIndex += 3){
+            // 提取每个像素的RGB值
+            int b = pixelData[byteIndex] & 1;
+            int g = pixelData[byteIndex + 1] & 1;
+            int r = pixelData[byteIndex + 2] & 1;
+
+            // 提取最低有效位的信息
+            binaryMessage.append(b);
+            binaryMessage.append(g);
+            binaryMessage.append(r);
+            // 每收集8个bit则转换为字符
+            if (binaryMessage.length() >= 16) {
+                size = Integer.parseInt(binaryMessage.substring(0, 16), 2);
+                binaryMessage.delete(0, 16);
+            }
+        }
+        binaryMessage.delete(0,2);
+        StringBuilder result=new StringBuilder();
+        int index=0;
+        int padding=0;
+        while((size+padding)%3!=0){
+            padding++;
+        }
+        System.out.println(size+padding);
+        System.out.println(size);
+        for (int byteIndex = 18; byteIndex < size+padding+18; byteIndex += 3) {
+            // 提取每个像素的RGB值
+            int b = pixelData[byteIndex] & 1;
+            int g = pixelData[byteIndex+1] & 1;
+            int r = pixelData[byteIndex+2] & 1;
+            // 提取最低有效位的信息
+            if(byteIndex>=size+18&&padding==2){
+                binaryMessage.append(g);
+            }
+            else if(byteIndex>=size+18&&padding==1){
+                binaryMessage.append(b);
+            }
+            else{
+                binaryMessage.append(b);
+                binaryMessage.append(g);
+                binaryMessage.append(r);
+            }
+            // 每收集16个bit则转换为字符
+            if (binaryMessage.length() >= 16) {
+                System.out.println(byteIndex);
+                int byteValue = Integer.parseInt(binaryMessage.substring(0, 16), 2);
+                System.out.println(binaryMessage.substring(0,16));
+                System.out.println(byteValue);
+                result.append((char)byteValue);
+                index++;
+                binaryMessage.delete(0, 16);
+                // 判断是否已经找到结束符号 '\0' 表示信息提取完成
+                if (byteValue == 0) {
+                    break;
+                }
+            }
+        }
+
+        System.out.println(result.toString());
+        return result.toString();
+    }
+
     public static String extractMessageFromBmp(InputStream fis, String key) throws Exception{
         byte[] header = new byte[54];
         byte[] pixelData;
