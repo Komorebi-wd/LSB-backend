@@ -25,16 +25,24 @@ public class BMPDecoder {
         int width = byteArrayToInt(header, 18);
         int height = byteArrayToInt(header, 22);
 
-        // 读取像素数据
-        if (header[28] == 8) {
-            // 256色灰度图，每个像素占用1字节
-            pixelData = fis.readAllBytes();
-        } else if (header[28] == 24) {
-            // 24位真彩色图，每个像素占用3字节 (BGR顺序)
-            pixelData = fis.readAllBytes();
-        } else {
-            throw new IllegalArgumentException("Unsupported BMP format. Must be 8-bit or 24-bit.");
+        int length=0;
+        if (header[28]==8){
+            length=width*height;
         }
+        else{
+            length=width*height*3;
+        }
+        pixelData = new byte[length];
+        fis.read(pixelData);
+        fis.close();
+        for (byte i:header){
+            System.out.print(i+" ");
+        }
+        System.out.println();
+        for (byte i:pixelData){
+            System.out.print(i+" ");
+        }
+        System.out.println();
         int size = 0;
         StringBuilder binaryMessage = new StringBuilder();
 
@@ -63,6 +71,8 @@ public class BMPDecoder {
         }
         System.out.println(size+padding);
         System.out.println(size);
+        System.out.println("pixelData.length="+pixelData.length);
+        System.out.println("pixelData size="+width*height);
         for (int byteIndex = 18; byteIndex < size+padding+18; byteIndex += 3) {
             // 提取每个像素的RGB值
             int b = pixelData[byteIndex] & 1;
@@ -106,21 +116,20 @@ public class BMPDecoder {
 
             // 读取BMP文件头部
             fis.read(header);
-
             // 读取图像宽度和高度
             int width = byteArrayToInt(header, 18);
             int height = byteArrayToInt(header, 22);
 
-            // 读取像素数据
-            if (header[28] == 8) {
-                // 256色灰度图，每个像素占用1字节
-                pixelData = fis.readAllBytes();
-            } else if (header[28] == 24) {
-                // 24位真彩色图，每个像素占用3字节 (BGR顺序)
-                pixelData = fis.readAllBytes();
-            } else {
-                throw new IllegalArgumentException("Unsupported BMP format. Must be 8-bit or 24-bit.");
-            }
+        int length=0;
+        if (header[28]==8){
+            length=width*height;
+        }
+        else{
+            length=width*height*3;
+        }
+        pixelData = new byte[length];
+        fis.read(pixelData);
+        fis.close();
         int size = 0;
         StringBuilder binaryMessage = new StringBuilder();
 

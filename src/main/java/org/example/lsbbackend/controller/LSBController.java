@@ -116,19 +116,22 @@ public class LSBController {
         int maxLength = 0;
         if(isKey){
             if (header[28] == 24){
-                maxLength = (int)Math.floor((width * height*3 -16) / 256)*16;
+                maxLength = (int)Math.floor((width * height*3 -18) / 256)*16;
             }
             else if (header[28] == 8){
-                maxLength = (int)Math.floor((width * height -16) / 256)*16;
+                maxLength = (int)Math.floor((width * height -18) / 256)*16;
             }
         }
         else{
             if (header[28] == 24){
-                maxLength = (width * height*3)/8;
+                maxLength = (width * height*3-18)/8;
             }
             else if (header[28] == 8){
-                maxLength = (width * height)/8;
+                maxLength = (width * height-18)/8;
             }
+        }
+        if (maxLength<0){
+            maxLength=0;
         }
         System.out.println(width+"  "+height+"  "+maxLength);
         return maxLength;

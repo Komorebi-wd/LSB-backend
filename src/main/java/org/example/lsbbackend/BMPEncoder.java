@@ -26,12 +26,25 @@ public class BMPEncoder {
 
             // 读取BMP文件
             byte[] header = new byte[54];
+
             inputStream.read(header);
             // 读取图像宽度和高度
             int width = ByteBuffer.wrap(header, 18, 4).order(ByteOrder.LITTLE_ENDIAN).getInt();
             int height = ByteBuffer.wrap(header, 22, 4).order(ByteOrder.LITTLE_ENDIAN).getInt();
             // 读取像素数据
-            byte[] pixelData = new byte[inputStream.available()];
+            System.out.println("header的数据如下");
+            for(int i=0;i<header.length;i++){
+                System.out.print("header的第"+(i)+"位: ");
+                System.out.println(header[i]);
+            }
+            int length=0;
+            if (header[28]==8){
+                length=width*height;
+            }
+            else{
+                length=width*height*3;
+            }
+            byte[] pixelData = new byte[length];
             inputStream.read(pixelData);
             inputStream.close();
             // 将消息转换为二进制字符串
@@ -87,6 +100,7 @@ public class BMPEncoder {
             }
             // 嵌入消息
             int index = 16;
+            System.out.println("pixelData.lenght="+pixelData.length);
             for (int byteIndex = 18; byteIndex < pixelData.length; byteIndex += 3) {
                 if (index < binaryMessage.length()) {
                     // 读取原始像素颜色值
@@ -126,7 +140,14 @@ public class BMPEncoder {
             int width = ByteBuffer.wrap(header, 18, 4).order(ByteOrder.LITTLE_ENDIAN).getInt();
             int height = ByteBuffer.wrap(header, 22, 4).order(ByteOrder.LITTLE_ENDIAN).getInt();
             // 读取像素数据
-            byte[] pixelData = new byte[inputStream.available()];
+            int length=0;
+            if (header[28]==8){
+                length=width*height;
+            }
+            else{
+                length=width*height*3;
+            }
+            byte[] pixelData = new byte[length];
             inputStream.read(pixelData);
             inputStream.close();
             // 将消息转换为二进制字符串
