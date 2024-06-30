@@ -9,13 +9,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Base64;
+import java.util.Random;
 
 import javax.imageio.ImageIO;
 
@@ -201,6 +199,7 @@ public class LSBController {
         buffer.get(messageBytes);
         return new String(messageBytes).trim();
     }
+
 
     @PostMapping("/noise")
     public ResponseEntity<?> addNoise(@RequestParam("image") MultipartFile file) {
