@@ -9,13 +9,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Base64;
+import java.util.Random;
 
 import javax.imageio.ImageIO;
 
@@ -199,25 +197,21 @@ public class LSBController {
         return new String(messageBytes).trim();
     }
 
+
     @PostMapping("/noise")
     public ResponseEntity<?> addNoise(@RequestParam("image") MultipartFile file) {
         try {
-            BufferedImage image = ImageIO.read(file.getInputStream());
-            if (image == null) {
+            if (file == null) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid image file.");
             }
-
             GaussianNoise gauss = new GaussianNoise();
 
-            BufferedImage modifiedImage = gauss.addNoiseImage(image);
-
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            ImageIO.write(modifiedImage, "bmp", outputStream);
-            byte[] imageBytes = outputStream.toByteArray();
+            byte[] imageBytes = gauss.addNoiseImage(file.getInputStream());
             String encodedImage = Base64.getEncoder().encodeToString(imageBytes);
-
             return ResponseEntity.ok(encodedImage);
         } catch (Exception e) {
+            System.out.println(" aa ");
+            System.out.println(e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error processing image.");
         }
     }

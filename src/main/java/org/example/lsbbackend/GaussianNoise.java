@@ -1,6 +1,11 @@
 package org.example.lsbbackend;
 
 import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
 import java.util.Random;
 
 public class GaussianNoise {
@@ -26,32 +31,63 @@ public class GaussianNoise {
         tau = Math.sqrt(-2.0 * Math.log(alpha)) * Math.sin(2.0 * Math.PI * beta);
 
         // 计算最终的噪声值。这里将输入的颜色值转换为双精度浮点数，并根据计算得到的sigma和tau值计算出噪声，加到颜色值上。
-        value = (double) color + Math.sqrt((double) color) * SigmaGaussian * sigma + TauGaussian * tau;
+        value = (double) color + Math.sqrt(color) * SigmaGaussian * sigma + TauGaussian * tau;
 
         if (value < 0.0)
             return 0;
         if (value > 255)
-            return (int) 255;
+            return 255;
 
         // 将计算得到的噪声值四舍五入并转换为整数后返回
         return (int) (value + 0.5);
     }
 
-    public BufferedImage addNoiseImage(BufferedImage image) {
-        BufferedImage bimg = new BufferedImage(image.getWidth(),image.getHeight(),BufferedImage.TYPE_INT_RGB);
-        Pixel pixel = new Pixel();
+    public byte[] addNoiseImage(InputStream inputStream) throws IOException {
+        try {
+            // 读取BMP文件头部信息
+            byte[] header = new byte[54];
+            inputStream.read(header);
 
-        for (int y = 0; y < image.getHeight(); y++) {
-            for (int x = 0; x < image.getWidth(); x++) {
-                pixel.setRGB(image.getRGB(x, y));
-                pixel.red = generateNoise(pixel.red);
-                pixel.green = generateNoise(pixel.green);
-                pixel.blue = generateNoise(pixel.blue);
-                bimg.setRGB(x, y, pixel.getRGB());
+            // 读取图像宽度和高度
+            int width = ByteBuffer.wrap(header, 18, 4).order(ByteOrder.LITTLE_ENDIAN).getInt();
+            int height = ByteBuffer.wrap(header, 22, 4).order(ByteOrder.LITTLE_ENDIAN).getInt();
+
+            // 读取像素数据
+            byte[] pixelData = new byte[inputStream.available()];
+            inputStream.read(pixelData);
+            inputStream.close();
+
+            // 添加噪声
+            for (int i = 0; i < pixelData.length-3; i += 3) {
+                // 读取RGB值
+                int red = pixelData[i] & 0xFF;
+                int green = pixelData[i + 1] & 0xFF;
+                int blue = pixelData[i + 2] & 0xFF;
+
+                // 添加噪声
+                red = generateNoise(red);
+                green = generateNoise(green);
+                blue = generateNoise(blue);
+
+                // 写回噪声后的RGB值
+                pixelData[i] = (byte) red;
+                pixelData[i + 1] = (byte) green;
+                pixelData[i + 2] = (byte) blue;
             }
-        }
+            System.out.println("ccc");
 
-        return bimg;
+            // 构造最终的byte数组，包括头部和修改后的像素数据
+            byte[] combinedArray = new byte[header.length + pixelData.length];
+            System.arraycopy(header, 0, combinedArray, 0, header.length);
+            System.arraycopy(pixelData, 0, combinedArray, header.length, pixelData.length);
+
+            return combinedArray;
+
+        } catch (IOException e) {
+
+            e.printStackTrace();
+            throw e; // 抛出异常以便调用者处理
+        }
     }
 }
 
