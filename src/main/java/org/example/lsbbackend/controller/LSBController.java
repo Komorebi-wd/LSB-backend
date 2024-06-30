@@ -51,9 +51,9 @@ public class LSBController {
     }
     @PostMapping("/embedWithKey")
     public ResponseEntity<?> embedMessageWithKey(@RequestParam("image") MultipartFile imageFile,
-                                                 @RequestParam("message") String message,
-                                                 @RequestParam("key") String key
-    ) {
+                                          @RequestParam("message") String message,
+                                          @RequestParam("key") String key
+                                          ) {
         try {
 
 //            BufferedImage image = ImageIO.read(imageFile.getInputStream());
@@ -70,7 +70,7 @@ public class LSBController {
     }
     @PostMapping("/embed")
     public ResponseEntity<?> embedMessage(@RequestParam("image") MultipartFile imageFile,
-                                          @RequestParam("message") String message
+                                                 @RequestParam("message") String message
     ) {
         try {
 
